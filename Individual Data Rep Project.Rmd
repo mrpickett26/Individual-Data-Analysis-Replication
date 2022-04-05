@@ -1,0 +1,21 @@
+---
+title: "Individual Data Replication Project Kim et al"
+author: "Madison Pickett"
+date: "4/4/2022"
+output: html_document
+---
+
+```{r setup}
+library(dplyr)
+library(tidyverse)
+f <- "https://raw.githubusercontent.com/mrpickett26/Individual-Data-Analysis-Replication/main/tumor%20location%20raw%20data_final.csv"
+d <- read_csv(f, col_names = TRUE)
+library(skimr)
+skim(d)
+Triple_neg<-filter(d, Subtype=="3")
+ER_pos<-filter(d, Subtype=="1")
+
+
+
+```
+
