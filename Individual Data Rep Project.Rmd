@@ -14,7 +14,7 @@ library(skimr)
 skim(d)
 Triple_neg<-filter(d, Subtype=="3")
 ER_pos<-filter(d, Subtype=="1")
-
+dd
 
 
 ```
