@@ -1,4 +1,4 @@
-﻿ID,Size_Pathol_cm_,Subtype_1: ER-positive 3:triple negative,Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping,MR_Location_ML__1__medial_2__central_3__lateral_,MR_Location_AP__1__anterior_2__middle_3__posterior_,Y_distance,X_normalized,Y_normalized,Z_normalized,MG_grade,X_distance,Z_distance,Palpability,Histologic_full
+﻿ID,Size_Pathol_cm_,Subtype,Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping,MR_Location_ML__1__medial_2__central_3__lateral_,MR_Location_AP__1__anterior_2__middle_3__posterior_,Y_distance,X_normalized,Y_normalized,Z_normalized,MG_grade,X_distance,Z_distance,Palpability,Histologic_full
 1.00,1.50,1.00,2.00,2.00,2.00,1.70,0.00,0.20,0.20,3.00,-0.30,2.70,0.00,2.00
 2.00,3.00,1.00,2.00,2.00,3.00,0.10,0.00,0.00,0.50,3.00,-0.40,6.70,1.00,2.00
 3.00,1.60,1.00,1.00,2.00,2.00,3.90,0.00,0.40,0.10,3.00,0.20,1.20,1.00,2.00
