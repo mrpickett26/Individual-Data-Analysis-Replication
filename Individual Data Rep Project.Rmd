@@ -10,11 +10,165 @@ library(dplyr)
 library(tidyverse)
 f <- "https://raw.githubusercontent.com/mrpickett26/Individual-Data-Analysis-Replication/main/tumor%20location%20raw%20data_final.csv"
 d <- read_csv(f, col_names = TRUE)
+head(d)
 library(skimr)
-skim(d)
+skim(d) #getting some quick stats before filtering... based on raw data a lot of filtering needs to occur but useful for a couple variables
+
+## DESCRIPTIVE STATISTICS
+
+#separate data out into the two different subtype, key factor in the paper
 Triple_neg<-filter(d, Subtype=="3")
+n<- nrow(Triple_neg)
+T_Hist_grade<-Triple_neg%>%
+  group_by(Histologic_full)%>%
+  filter(n()==1)
+T_Hist_grade
+
+
+#histological grade, can be either 1, II, or III. T_Hist_grade tells the number of patients whose identified cancers belong to each type. 
+
+ans <- Triple_neg %>% replace(.=="#NULL!", NA) 
+g<-ans[!is.na(ans$Size_Pathol_cm_),]
+Mean_Size_T<-as.numeric(g$Size_Pathol_cm_)
+Mean_size_Trip_neg<-mean(Mean_Size_T) 
+Mean_size_Trip_neg
+#found the mean of the size of the triple negative tumor in cm after omitting all #NULL! values, maybe replaced with 0 in paper because my mean is slightly higher
+Range_size_trip_neg<- range(g$Size_Pathol_cm_)
+Range_size_trip_neg
+#find the range of values for the tumor size. The paper says that the range of the values for tumor size are (0.2-5.4), whereas my calculations indicate that the range extends up to 9.6. 
+
+#Palpability
+Triple_neg$Palpability[Triple_neg$Palpability=="1"]<-"No"
+Triple_neg$Palpability[Triple_neg$Palpability=="0"]<-"Yes"
+#change the 1 and 0s found in Palpability to Yes and No values 
+#now count the number of yes and no values 
+No<-(length(which(Triple_neg$Palpability=="No")))
+Yes<-(length(which(Triple_neg$Palpability=="Yes")))
+Percent_palp<- Yes/n
+Percent_not_palp<-No/n
+# calculated the number and percentage of palpable vs not palpable tumors in the Triple Negative subtype
+
+#Now I will assign the numeric positional data to new values which will make it easier to filter out the data and do further analyses
+UOQ<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="1")))
+percent_UOQ<-UOQ/n
+UIQ<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="2")))
+percent_UIQ<-UIQ/n
+LOQ<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="3")))
+percent_LOQ<-LOQ/n
+LIQ<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="4")))
+percent_LIQ<-LIQ/n
+periareolar<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="5")))
+percent_periareolar<-periareolar/n
+
+#now do the same assignments for mediolateral locations
+medial<-(length(which(Triple_neg$MR_Location_ML__1__medial_2__central_3__lateral_=="1")))
+percent_medial<-medial/n
+central<-(length(which(Triple_neg$MR_Location_ML__1__medial_2__central_3__lateral_=="2")))
+percent_central<-central/n
+lateral<-(length(which(Triple_neg$MR_Location_ML__1__medial_2__central_3__lateral_=="3")))
+percent_lateral<-lateral/n
+
+#now do the same assignments for anteroposterior locations
+anterior<-(length(which(Triple_neg$MR_Location_AP__1__anterior_2__middle_3__posterior_=="1")))
+percent_anterior<-anterior/n
+middle<-(length(which(Triple_neg$MR_Location_AP__1__anterior_2__middle_3__posterior_=="2")))
+percent_middle<-middle/n
+posterior<-(length(which(Triple_neg$MR_Location_AP__1__anterior_2__middle_3__posterior_=="3")))
+percent_posterior<-posterior/n
+
+#Do the same descriptive stats for ER Pos
 ER_pos<-filter(d, Subtype=="1")
-dd
+
+#Make into a table
+
+a<-c("Palpability_no","Palpability_yes", "Upper Outer Quadrant","Upper Inner Quadrant","Lower Outer Quadrant","Lower Inner Quadrant", "Periareolar", "Mediolateral_Medial", "Mediolateral_Central", "Mediolateral_Lateral", "Anteroposterior_Anterior", "Anteroposterior_Middle", "Anteroposterior_Posterior")
+b<-c(Yes, No, UOQ, UIQ, LOQ, LIQ, periareolar, medial, central, lateral, anterior, middle, posterior)
+c<- 100* c(Percent_palp, Percent_not_palp, percent_UOQ, percent_UIQ, percent_LOQ, percent_LIQ, percent_periareolar, percent_medial, percent_central, percent_lateral, percent_anterior, percent_middle, percent_posterior)
+Triple_neg_df<-data.frame(Variables=a, TripleNegativeMeans=b, TripleNegativePercentages=c)
+#ERMeans=d, ERPercentages=e
+
+
+
+
+## DATA VISUALIZATION
+
+##INFERENTIAL STATISTICS
+
+# need to filter out the normalized distance from the chest wall and distance from the chest wall
+norm_dist_TN<-Triple_neg$Y_normalized
+ans2 <- d%>% replace(.=="#NULL!", NA) 
+p<-ans2[!is.na(ans2$Size_Pathol_cm_),]
+norm_dist<-as.numeric(p$Y_normalized)
+dist_TN<-Triple_neg$Y_distance
+dist<-p$Y_distance
+norm_dist_TN<-Triple_neg$Y_normalized
+mean_norm_dist_TN<-mean(norm_dist_TN)
+mean_dist_TN<-mean(dist_TN)
+
+ 
+k<-as.numeric(p$Size_Pathol_cm_)
+
+beta1_size<- cor(k,dist)*(sd(dist)/sd(k))
+beta1_size #do hand calculations of beta1 for size of tumor and y distance 
+(beta0_size <- mean(dist) - beta1_size * mean(k))
+beta0_size #do hand calculations of beta0 for size of tumor and y distance 
+
+# now do standard error of b1 and b0 for size of tumor and y distance
+n <- nrow(p)
+df<-n-2
+mean_x <- mean(k)
+y_pred = beta0_size + beta1_size*k
+y_error = dist - y_pred
+std_err_b1_dist <- sqrt((sum(y_error^2))/((n-2)*sum((dist-mean_x)^2)))
+std_err_b1_dist
+std_err_b0_dist<-std_err_b1_dist*sqrt((sum(dist^2))/n)
+std_err_b0_dist
+
+
+(beta1_size_norm <- cor(k,norm_dist)*(sd(norm_dist)/sd(k)))
+beta1_size_norm #do hand calculations of beta1 for size of tumor and normalized y distance 
+(beta0_size_norm <- mean(norm_dist) - beta1_size_norm * mean(k))#do hand calculations of beta0 for size of tumor and normalized y distance 
+beta0_size_norm
+
+#try confidence intervals and p value by hand 
+y_pred = beta0_size_norm + beta1_size_norm*k
+y_error = norm_dist - y_pred
+std_err_b1 <- sqrt((sum(y_error^2))/((n-2)*sum((k-mean_x)^2)))
+std_err_b1
+std_err_b0<-std_err_b1*sqrt((sum(k^2))/n)
+std_err_b0
+#confidence intervals
+ci_t <- beta1_size_norm + c(-1, 1) * qt(1 - 0.05 / 2, df) * std_err_b1
+ci_t
+t_stat<-beta1_size_norm/std_err_b1
+t_stat
+
+p_upper <- 1-pt(abs(t_stat ), df=n-2)
+# or 1 - pt(t_stat, df=n-1, lower.tail = FALSE)
+p_lower <- pt(-1*abs(t_stat ), df=n-2)
+# or pt(t_stat, df=n-1, lower.tail = TRUE)
+p_val <- p_upper + p_lower
+p_val
+
+
+#check with the lm function
+m_size_path<-lm(dist~k, data=p)
+summary(m_size_path)
+
+m_size_path_norm<-lm(norm_dist~k, data=p)
+summary(m_size_path_norm)
+
+# I will use the lm function to evaluate the rest of the variables BUT if I was to do it by hand, it would follow the formats about for beta1_size, beta1_size_norm, beta0_size, and beta0_size_norm
+
+#"In statistics, standardized (regression) coefficients, also called beta coefficients or beta weights, are the estimates resulting from a regression analysis where the underlying data have been standardized so that the variances of dependent and independent variables are equal to 1." source: https://en.wikipedia.org/wiki/Standardized_coefficient, the lm.beta package allows us to see 
+
+#show you can maybe do that by hand 
+library(lm.beta) 
+Stand_beta_coeff <- lm(dist~k, data=p)
+model_size_stand<-lm.beta(Stand_beta_coeff)
+summary(model_size_stand)
+
+
 
 
 ```
