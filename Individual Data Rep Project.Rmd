@@ -19,11 +19,17 @@ skim(d) #getting some quick stats before filtering... based on raw data a lot of
 #separate data out into the two different subtype, key factor in the paper
 Triple_neg<-filter(d, Subtype=="3")
 n<- nrow(Triple_neg)
-T_Hist_grade<-Triple_neg%>%
-  group_by(Histologic_full)%>%
-  filter(n()==1)
-T_Hist_grade
 
+T_Hist_grade_1<-(length(which(Triple_neg$Histologic_full=="1")))
+T_hist_grade_2<-(length(which(Triple_neg$Histologic_full=="2")))
+T_hist_grade_3<-(length(which(Triple_neg$Histologic_full=="3")))
+percent<- function(x){
+  perc<- x/256
+  return(perc)
+}
+T_hist_grade1_percent<- percent(T_Hist_grade_1)
+T_hist_grade2_percent<- percent(T_hist_grade_2)
+T_hist_grade3_percent<- percent(T_hist_grade_3)
 
 #histological grade, can be either 1, II, or III. T_Hist_grade tells the number of patients whose identified cancers belong to each type. 
 
@@ -44,49 +50,107 @@ Triple_neg$Palpability[Triple_neg$Palpability=="0"]<-"Yes"
 #now count the number of yes and no values 
 No<-(length(which(Triple_neg$Palpability=="No")))
 Yes<-(length(which(Triple_neg$Palpability=="Yes")))
-Percent_palp<- Yes/n
-Percent_not_palp<-No/n
+Percent_palp<- percent(Yes)
+Percent_not_palp<-percent(No)
 # calculated the number and percentage of palpable vs not palpable tumors in the Triple Negative subtype
 
 #Now I will assign the numeric positional data to new values which will make it easier to filter out the data and do further analyses
 UOQ<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="1")))
-percent_UOQ<-UOQ/n
+percent_UOQ<-percent(UOQ)
 UIQ<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="2")))
-percent_UIQ<-UIQ/n
+percent_UIQ<-percent(UIQ)
 LOQ<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="3")))
-percent_LOQ<-LOQ/n
+percent_LOQ<-percent(LOQ)
 LIQ<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="4")))
-percent_LIQ<-LIQ/n
+percent_LIQ<-percent(LIQ)
 periareolar<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="5")))
-percent_periareolar<-periareolar/n
+percent_periareolar<-percent(periareolar)
 
 #now do the same assignments for mediolateral locations
 medial<-(length(which(Triple_neg$MR_Location_ML__1__medial_2__central_3__lateral_=="1")))
-percent_medial<-medial/n
+percent_medial<-percent(medial)
 central<-(length(which(Triple_neg$MR_Location_ML__1__medial_2__central_3__lateral_=="2")))
-percent_central<-central/n
+percent_central<-percent(central)
 lateral<-(length(which(Triple_neg$MR_Location_ML__1__medial_2__central_3__lateral_=="3")))
-percent_lateral<-lateral/n
+percent_lateral<-percent(lateral)
 
 #now do the same assignments for anteroposterior locations
 anterior<-(length(which(Triple_neg$MR_Location_AP__1__anterior_2__middle_3__posterior_=="1")))
-percent_anterior<-anterior/n
+percent_anterior<-percent(anterior)
 middle<-(length(which(Triple_neg$MR_Location_AP__1__anterior_2__middle_3__posterior_=="2")))
-percent_middle<-middle/n
+percent_middle<-percent(middle)
 posterior<-(length(which(Triple_neg$MR_Location_AP__1__anterior_2__middle_3__posterior_=="3")))
-percent_posterior<-posterior/n
+percent_posterior<-percent(posterior)
 
 #Do the same descriptive stats for ER Pos
 ER_pos<-filter(d, Subtype=="1")
+n_E<- nrow(ER_pos)
+
+#Histological Grade 
+T_Hist_grade_1_E<-(length(which(ER_pos$Histologic_full=="1")))
+T_hist_grade_2_E<-(length(which(ER_pos$Histologic_full=="2")))
+T_hist_grade_3_E<-(length(which(ER_pos$Histologic_full=="3")))
+percentE<- function(x){
+  perc<- x/846
+  return(perc)
+}
+T_hist_grade1E_percent<- percentE(T_Hist_grade_1_E)
+T_hist_grade2E_percent<- percentE(T_hist_grade_2_E)
+T_hist_grade3E_percent<- percentE(T_hist_grade_3_E)
+
+ans <- ER_pos %>% replace(.=="#NULL!", NA) 
+Eg<-ans[!is.na(ans$Size_Pathol_cm_),]
+Mean_Size_E<-as.numeric(Eg$Size_Pathol_cm_)
+Mean_size_ER<-mean(Mean_Size_E) 
+Mean_size_ER
+
+Range_size_ER<- range(Eg$Size_Pathol_cm_)
+Range_size_ER
+
+#Palpability ER
+No_ER<-(length(which(ER_pos$Palpability=="1")))
+Yes_ER<-(length(which(ER_pos$Palpability=="0")))
+Percent_palpE<- percentE(Yes_ER)
+Percent_not_palpE<-percentE(No_ER)
+
+#Quadrants
+UOQ_E<-(length(which(ER_pos$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="1")))
+percent_UOQ_E<-percentE(UOQ_E)
+UIQ_E<-(length(which(ER_pos$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="2")))
+percent_UIQ_E<-percent(UIQ_E)
+LOQ_E<-(length(which(ER_pos$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="3")))
+percent_LOQ_E<-percentE(LOQ_E)
+LIQ_E<-(length(which(ER_pos$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="4")))
+percent_LIQ_E<-percentE(LIQ_E)
+periareolar_E<-(length(which(ER_pos$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="5")))
+percent_periareolar_E<-percentE(periareolar_E)
+
+
+medial_E<-(length(which(ER_pos$MR_Location_ML__1__medial_2__central_3__lateral_=="1")))
+percent_medial_E<-percentE(medial_E)
+central_E<-(length(which(ER_pos$MR_Location_ML__1__medial_2__central_3__lateral_=="2")))
+percent_central_E<-percentE(central_E)
+lateral_E<-(length(which(ER_pos$MR_Location_ML__1__medial_2__central_3__lateral_=="3")))
+percent_lateral_E<-percent(lateral_E)
+
+#ER now do the same assignments for anteroposterior locations
+anterior_E<-(length(which(ER_pos$MR_Location_AP__1__anterior_2__middle_3__posterior_=="1")))
+percent_anterior_E<-percentE(anterior_E)
+middle_E<-(length(which(ER_pos$MR_Location_AP__1__anterior_2__middle_3__posterior_=="2")))
+percent_middle_E<-percentE(middle_E)
+posterior_E<-(length(which(ER_pos$MR_Location_AP__1__anterior_2__middle_3__posterior_=="3")))
+percent_posterior_E<-percentE(posterior_E)
 
 #Make into a table
 
-a<-c("Palpability_no","Palpability_yes", "Upper Outer Quadrant","Upper Inner Quadrant","Lower Outer Quadrant","Lower Inner Quadrant", "Periareolar", "Mediolateral_Medial", "Mediolateral_Central", "Mediolateral_Lateral", "Anteroposterior_Anterior", "Anteroposterior_Middle", "Anteroposterior_Posterior")
-b<-c(Yes, No, UOQ, UIQ, LOQ, LIQ, periareolar, medial, central, lateral, anterior, middle, posterior)
-c<- 100* c(Percent_palp, Percent_not_palp, percent_UOQ, percent_UIQ, percent_LOQ, percent_LIQ, percent_periareolar, percent_medial, percent_central, percent_lateral, percent_anterior, percent_middle, percent_posterior)
-Triple_neg_df<-data.frame(Variables=a, TripleNegativeMeans=b, TripleNegativePercentages=c)
-#ERMeans=d, ERPercentages=e
+a<-c("Palpability_no","Palpability_yes", "Upper Outer Quadrant","Upper Inner Quadrant","Lower Outer Quadrant","Lower Inner Quadrant", "Periareolar", "Mediolateral_Medial", "Mediolateral_Central", "Mediolateral_Lateral", "Anteroposterior_Anterior", "Anteroposterior_Middle", "Anteroposterior_Posterior","Histological Grade 1","Histological Grade 2","Histological Grade 3")
+b<-c(Yes, No, UOQ, UIQ, LOQ, LIQ, periareolar, medial, central, lateral, anterior, middle, posterior, T_Hist_grade_1, T_hist_grade_2, T_hist_grade_3)
+c<- 100* c(Percent_palp, Percent_not_palp, percent_UOQ, percent_UIQ, percent_LOQ, percent_LIQ, percent_periareolar, percent_medial, percent_central, percent_lateral, percent_anterior, percent_middle, percent_posterior, T_hist_grade1_percent, T_hist_grade2_percent, T_hist_grade3_percent)
+d<-c(Yes_ER, No_ER, UOQ_E, UIQ_E, LOQ_E, LIQ_E, periareolar_E, medial_E, central_E, lateral_E, anterior_E, middle_E, posterior_E, T_Hist_grade_1_E, T_hist_grade_2_E, T_hist_grade_3_E)
+e<- 100* c(Percent_palpE, Percent_not_palpE, percent_UOQ_E, percent_UIQ_E, percent_LOQ_E, percent_LIQ_E, percent_periareolar_E, percent_medial_E, percent_central_E, percent_lateral_E, percent_anterior_E, percent_middle_E, percent_posterior_E, T_hist_grade1E_percent, T_hist_grade2E_percent, T_hist_grade3E_percent)
+Triple_neg_df<-data.frame(Variables=a, TripleNegativeMeans=b, TripleNegativePercentages=c, ERMeans=d, ERPercentages=e)
 
+Triple_neg_df
 
 
 
@@ -95,7 +159,22 @@ Triple_neg_df<-data.frame(Variables=a, TripleNegativeMeans=b, TripleNegativePerc
 ##INFERENTIAL STATISTICS
 
 # need to filter out the normalized distance from the chest wall and distance from the chest wall
-norm_dist_TN<-Triple_neg$Y_normalized
+
+Triple_neg_normY <- Triple_neg$Y_normalized%>%
+  replace(.=="#NULL!", NA) 
+Triple_neg_normY<- na.omit(Triple_neg_normY)
+
+
+norm_y_dist_TN<- mean(Triple_neg)
+dist_y_TN<- Triple_neg%>% mean(Y_normalized)
+norm_y_dist_ER<- ER_pos%>% mean(Y_normalized)
+dist_y_ER<- ER_pos%>% mean(Y_distance)
+
+norm_x_dist_TN<- Triple_neg%>% mean(X_normalized)
+dist_x_TN<- Triple_neg%>% mean(X_distance)
+norm_x_dist_ER<- ER_pos%>% mean(X_normalized)
+dist_x_ER<- ER_pos%>% mean(X_distance)
+
 ans2 <- d%>% replace(.=="#NULL!", NA) 
 p<-ans2[!is.na(ans2$Size_Pathol_cm_),]
 norm_dist<-as.numeric(p$Y_normalized)
@@ -105,6 +184,16 @@ norm_dist_TN<-Triple_neg$Y_normalized
 mean_norm_dist_TN<-mean(norm_dist_TN)
 mean_dist_TN<-mean(dist_TN)
 
+## Do the same for ER 
+ans2E <- d%>% replace(.=="#NULL!", NA) 
+ans2E<- as.data.frame(ans2E)
+pE<-ans2E[!is.na(ans2E$Size_Pathol_cm_),]
+norm_dist_E<-pE$Y_normalized
+dist_E<-ER_pos$Y_distance
+distE<-pE$Y_distance
+norm_dist_E<-ER_pos$Y_normalized
+mean_norm_dist_E<-mean(norm_dist_ER)
+mean_dist_E<-mean(dist_E)
  
 k<-as.numeric(p$Size_Pathol_cm_)
 
