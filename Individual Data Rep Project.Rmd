@@ -152,7 +152,7 @@ Triple_neg_df<-data.frame(Variables=a, TripleNegativeMeans=b, TripleNegativePerc
 
 Triple_neg_df
 
-
+#Still might want to do some range work for the values
 
 ## DATA VISUALIZATION
 
@@ -163,6 +163,146 @@ Triple_neg_df
 Triple_neg_normY <- Triple_neg$Y_normalized%>%
   replace(.=="#NULL!", NA) 
 Triple_neg_normY<- na.omit(Triple_neg_normY)
+m_Triple_neg_normY<- mean(Triple_neg_normY)
+
+Triple_neg_normX <- Triple_neg$X_normalized%>%
+  replace(.=="#NULL!", NA) 
+Triple_neg_normX<- na.omit(Triple_neg_normX)
+m_Triple_neg_normX<- mean(Triple_neg_normX)
+
+Triple_neg_normZ <- Triple_neg$Z_normalized%>%
+  replace(.=="#NULL!", NA) 
+Triple_neg_normZ<- na.omit(Triple_neg_normZ)
+m_Triple_neg_normZ<- mean(Triple_neg_normZ)
+
+Triple_neg_Y <- Triple_neg$Y_distance%>%
+  replace(.=="#NULL!", NA) 
+Triple_neg_Y<- na.omit(Triple_neg_Y)
+m_Triple_neg_Y<- mean(Triple_neg_Y)
+
+Triple_neg_X <- Triple_neg$X_distance%>%
+  replace(.=="#NULL!", NA) 
+Triple_neg_X<- na.omit(Triple_neg_X)
+m_Triple_neg_X<- mean(Triple_neg_X)
+
+Triple_neg_Z <- Triple_neg$Z_distance%>%
+  replace(.=="#NULL!", NA) 
+Triple_neg_Z<- na.omit(Triple_neg_Z)
+m_Triple_neg_Z<- mean(Triple_neg_Z)
+
+## Do the same for ER now
+ER_normY <- ER_pos$Y_normalized%>%
+  replace(.=="#NULL!", NA) 
+ER_normY<- na.omit(ER_normY)
+m_ER_normY<- mean(ER_normY)
+
+ER_normX <- ER_pos$X_normalized%>%
+  replace(.=="#NULL!", NA) 
+ER_normX<- na.omit(ER_normX)
+m_ER_normX<- mean(ER_normX)
+
+ER_normZ <- ER_pos$Z_normalized%>%
+  replace(.=="#NULL!", NA) 
+ER_normZ<- na.omit(ER_normZ)
+m_ER_normZ<- mean(ER_normZ)
+
+ER_Y <- ER_pos$Y_distance%>%
+  replace(.=="#NULL!", NA) 
+ER_Y<- na.omit(ER_Y)
+m_ER_Y<- mean(ER_Y)
+
+ER_X <- ER_pos$X_distance%>%
+  replace(.=="#NULL!", NA) 
+ER_X<- na.omit(ER_X)
+m_ER_X<- mean(ER_X)
+
+ER_Z <- ER_pos$Z_distance%>%
+  replace(.=="#NULL!", NA) 
+ER_Z<- na.omit(ER_Z)
+m_ER_Z<- mean(ER_Z)
+
+## Assume normal distribution 
+SE <- function(x, type="normal") {
+  if (type=="normal"){
+    SE <- sd(x)/sqrt(length(x))
+  }
+  if (type=="poisson"){
+    SE <- sqrt(mean(x)/length(x))
+    # mean(x) is estimate of lambda
+  }
+  return(SE)
+}
+
+CI_norm <- function(x, alpha = 0.05) {
+  CI <- mean(x) + c(-1,1) * qnorm(1 - alpha/2) * SE(x)
+  # confidence interval based on normal distribution
+  names(CI) <- c("CI norm L","CI norm U")
+  return(CI)
+}
+ER_means <- ER_pos %>% dplyr::summarise(across(
+  .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
+.fns = ~ mean(.)))
+
+ER_SD <- ER_pos %>% dplyr::summarise(across(
+  .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
+.fns = ~ sd(.)))
+
+ER_SEs <- ER_pos %>% dplyr::summarise(across(
+    .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
+.fns = ~ SE(., type = "normal")))
+
+ER_CI_norm <- ER_pos %>%
+dplyr::summarise(across(
+  .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
+  .fns = ~ CI_norm(.)))
+
+TN_means <- Triple_neg %>% dplyr::summarise(across(
+  .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
+.fns = ~ mean(.)))
+
+TN_SD <- Triple_neg %>% dplyr::summarise(across(
+  .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
+.fns = ~ sd(.)))
+
+TN_SEs <- Triple_neg %>% dplyr::summarise(across(
+    .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
+.fns = ~ SE(., type = "normal")))
+
+TN_CI_norm <- Triple_neg %>%
+dplyr::summarise(across(
+  .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
+  .fns = ~ CI_norm(.)))
+library(lsr)
+X_norm<-t.test(ER_normX, Triple_neg_normX)
+p_x_norm<- X_norm$p.value
+
+Y_norm<-t.test(ER_normY, Triple_neg_normY)
+p_y_norm<- Y_norm$p.value
+
+Z_norm<-t.test(ER_normZ, Triple_neg_normZ)
+p_Z_norm<- Z_norm$p.value
+
+Z_dist<-t.test(ER_Z, Triple_neg_Z)
+p_Z<- Z_dist$p.value
+
+x_dist<-t.test(ER_X, Triple_neg_X)
+p_x<- x_dist$p.value
+
+y_dist<-t.test(ER_Y, Triple_neg_Y)
+p_y<- y_dist$p.value
+
+samp_1_summary <- as_tibble(t(bind_rows(ER_means, TN_means, ER_SD, TN_SD, ER_SEs, TN_SEs, ER_CI_norm, TN_CI_norm)), .name_repair = "minimal")
+names(samp_1_summary) <- c(" ER Mean", "TN Mean", "ER SD", "TN SD", "ER Std Error", "TN Std Error", "ER Confidence Interval L", "ER Confidence Interval U", "TN Confidence Interval L", "TN Confidence Interval U")
+variables <- tibble(Variable = c("Y_distance", "X_distance", "Z_distance", "Y_normalized", "X_normalized", "Z_normalized"))
+library(kableExtra)
+samp_summary <- bind_cols(variables, samp_1_summary)
+
+kable(samp_1_summary, digits = 3) %>%
+  kable_styling(font_size = 12, full_width = FALSE)
+samp_summary
+
+
+
 
 
 norm_y_dist_TN<- mean(Triple_neg)
