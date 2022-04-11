@@ -302,90 +302,61 @@ kable(samp_1_summary, digits = 3) %>%
 samp_summary
 
 
-
-
-
-norm_y_dist_TN<- mean(Triple_neg)
-dist_y_TN<- Triple_neg%>% mean(Y_normalized)
-norm_y_dist_ER<- ER_pos%>% mean(Y_normalized)
-dist_y_ER<- ER_pos%>% mean(Y_distance)
-
-norm_x_dist_TN<- Triple_neg%>% mean(X_normalized)
-dist_x_TN<- Triple_neg%>% mean(X_distance)
-norm_x_dist_ER<- ER_pos%>% mean(X_normalized)
-dist_x_ER<- ER_pos%>% mean(X_distance)
+#Do inferential stats for the paper, no distinction bewteen TN and ER 
+library(dplyr)
+library(tidyverse)
+f <- "https://raw.githubusercontent.com/mrpickett26/Individual-Data-Analysis-Replication/main/tumor%20location%20raw%20data_final.csv"
+d <- read_csv(f, col_names = TRUE)
 
 ans2 <- d%>% replace(.=="#NULL!", NA) 
-p<-ans2[!is.na(ans2$Size_Pathol_cm_),]
-norm_dist<-as.numeric(p$Y_normalized)
-dist_TN<-Triple_neg$Y_distance
-dist<-p$Y_distance
-norm_dist_TN<-Triple_neg$Y_normalized
-mean_norm_dist_TN<-mean(norm_dist_TN)
-mean_dist_TN<-mean(dist_TN)
+ans2<- na.omit(ans2)
 
-## Do the same for ER 
-ans2E <- d%>% replace(.=="#NULL!", NA) 
-ans2E<- as.data.frame(ans2E)
-pE<-ans2E[!is.na(ans2E$Size_Pathol_cm_),]
-norm_dist_E<-pE$Y_normalized
-dist_E<-ER_pos$Y_distance
-distE<-pE$Y_distance
-norm_dist_E<-ER_pos$Y_normalized
-mean_norm_dist_E<-mean(norm_dist_ER)
-mean_dist_E<-mean(dist_E)
- 
-k<-as.numeric(p$Size_Pathol_cm_)
+Size_pathol<- as.numeric(ans2$Size_Pathol_cm_)
+Hist_grade<- as.numeric(ans2$Histologic_full)
+Subtype<- as.numeric(ans2$Subtype)
 
-beta1_size<- cor(k,dist)*(sd(dist)/sd(k))
-beta1_size #do hand calculations of beta1 for size of tumor and y distance 
-(beta0_size <- mean(dist) - beta1_size * mean(k))
+normY_d <- ans2$Y_normalized%>%
+  replace(.=="#NULL!", NA) 
+normY_d<- na.omit(normY_d)
+
+Y_d <- ans2$Y_distance%>%
+  replace(.=="#NULL!", NA) 
+Y_d<- na.omit(Y_d)
+
+beta1_size<- cor(normY_d, Size_pathol)*(sd(normY_d)/sd(Size_pathol))
+beta1_size
+
+#do hand calculations of beta1 for size of tumor and y distance 
+(beta0_size <- mean(normY_d) - beta1_size * mean(Size_pathol))
 beta0_size #do hand calculations of beta0 for size of tumor and y distance 
 
-# now do standard error of b1 and b0 for size of tumor and y distance
-n <- nrow(p)
+# now do standard error of b1 and b0 for size of tumor and normalized y distance
+n <- nrow(ans2)
 df<-n-2
-mean_x <- mean(k)
-y_pred = beta0_size + beta1_size*k
-y_error = dist - y_pred
-std_err_b1_dist <- sqrt((sum(y_error^2))/((n-2)*sum((dist-mean_x)^2)))
+mean_x <- mean(Size_pathol)
+y_pred = beta0_size + beta1_size*normY_d
+y_error = normY_d - y_pred
+std_err_b1_dist <- sqrt((sum(y_error^2))/((n-2)*sum((Size_pathol-mean_x)^2)))
 std_err_b1_dist
-std_err_b0_dist<-std_err_b1_dist*sqrt((sum(dist^2))/n)
-std_err_b0_dist
 
+#Just use the lm function now 
+m_size_path_norm<-lm(normY_d~Size_pathol, data=ans2)
+summary(m_size_path_norm)
 
-(beta1_size_norm <- cor(k,norm_dist)*(sd(norm_dist)/sd(k)))
-beta1_size_norm #do hand calculations of beta1 for size of tumor and normalized y distance 
-(beta0_size_norm <- mean(norm_dist) - beta1_size_norm * mean(k))#do hand calculations of beta0 for size of tumor and normalized y distance 
-beta0_size_norm
+m_Hist_grade_norm<-lm(normY_d~Hist_grade, data=ans2)
+summary(m_Hist_grade_norm) #This one seems to differ 
 
-#try confidence intervals and p value by hand 
-y_pred = beta0_size_norm + beta1_size_norm*k
-y_error = norm_dist - y_pred
-std_err_b1 <- sqrt((sum(y_error^2))/((n-2)*sum((k-mean_x)^2)))
-std_err_b1
-std_err_b0<-std_err_b1*sqrt((sum(k^2))/n)
-std_err_b0
-#confidence intervals
-ci_t <- beta1_size_norm + c(-1, 1) * qt(1 - 0.05 / 2, df) * std_err_b1
-ci_t
-t_stat<-beta1_size_norm/std_err_b1
-t_stat
+m_Subtype_norm<-lm(normY_d~Subtype, data=ans2)
+summary(m_Subtype_norm)
 
-p_upper <- 1-pt(abs(t_stat ), df=n-2)
-# or 1 - pt(t_stat, df=n-1, lower.tail = FALSE)
-p_lower <- pt(-1*abs(t_stat ), df=n-2)
-# or pt(t_stat, df=n-1, lower.tail = TRUE)
-p_val <- p_upper + p_lower
-p_val
-
-
-#check with the lm function
-m_size_path<-lm(dist~k, data=p)
+m_size_path<-lm(Y_d~Size_pathol, data=ans2)
 summary(m_size_path)
 
-m_size_path_norm<-lm(norm_dist~k, data=p)
-summary(m_size_path_norm)
+m_Hist_grade<-lm(Y_d~Hist_grade, data=ans2)
+summary(m_Hist_grade) #This one seems to differ 
+
+m_Subtype<-lm(Y_d~Subtype, data=ans2)
+summary(m_Subtype)
 
 # I will use the lm function to evaluate the rest of the variables BUT if I was to do it by hand, it would follow the formats about for beta1_size, beta1_size_norm, beta0_size, and beta0_size_norm
 
@@ -393,12 +364,44 @@ summary(m_size_path_norm)
 
 #show you can maybe do that by hand 
 library(lm.beta) 
-Stand_beta_coeff <- lm(dist~k, data=p)
-model_size_stand<-lm.beta(Stand_beta_coeff)
-summary(model_size_stand)
+Std_beta_coeff_Y_norm_size<-lm.beta(m_size_path_norm)
+summary(Std_beta_coeff_Y_norm_size)
+
+library(lm.beta) 
+Std_beta_coeff_Y_size<-lm.beta(m_size_path)
+summary(Std_beta_coeff_Y_size)
+
+#can just do all with the lm beta
 
 
-
-
+# 
+# 
+# (beta1_size_norm <- cor(k,norm_dist)*(sd(norm_dist)/sd(k)))
+# beta1_size_norm #do hand calculations of beta1 for size of tumor and normalized y distance 
+# (beta0_size_norm <- mean(norm_dist) - beta1_size_norm * mean(k))#do hand calculations of beta0 for size of tumor and normalized y distance 
+# beta0_size_norm
+# 
+# #try confidence intervals and p value by hand 
+# y_pred = beta0_size_norm + beta1_size_norm*k
+# y_error = norm_dist - y_pred
+# std_err_b1 <- sqrt((sum(y_error^2))/((n-2)*sum((k-mean_x)^2)))
+# std_err_b1
+# std_err_b0<-std_err_b1*sqrt((sum(k^2))/n)
+# std_err_b0
+# #confidence intervals
+# ci_t <- beta1_size_norm + c(-1, 1) * qt(1 - 0.05 / 2, df) * std_err_b1
+# ci_t
+# t_stat<-beta1_size_norm/std_err_b1
+# t_stat
+# 
+# p_upper <- 1-pt(abs(t_stat ), df=n-2)
+# # or 1 - pt(t_stat, df=n-1, lower.tail = FALSE)
+# p_lower <- pt(-1*abs(t_stat ), df=n-2)
+# # or pt(t_stat, df=n-1, lower.tail = TRUE)
+# p_val <- p_upper + p_lower
+# p_val
+# 
+# 
+# #check with the lm function
 ```
 
