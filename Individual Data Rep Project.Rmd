@@ -342,21 +342,29 @@ std_err_b1_dist
 #Just use the lm function now 
 m_size_path_norm<-lm(normY_d~Size_pathol, data=ans2)
 summary(m_size_path_norm)
+std_err_pn<-coef(summary(m_size_path_norm))[, "Std. Error"]
 
 m_Hist_grade_norm<-lm(normY_d~Hist_grade, data=ans2)
 summary(m_Hist_grade_norm) #This one seems to differ 
+std_err_hgn<-coef(summary(m_Hist_grade_norm))[, "Std. Error"]
 
 m_Subtype_norm<-lm(normY_d~Subtype, data=ans2)
 summary(m_Subtype_norm)
+std_err_sn<-coef(summary(m_Subtype_norm))[, "Std. Error"]
 
 m_size_path<-lm(Y_d~Size_pathol, data=ans2)
 summary(m_size_path)
+std_err_sp<-coef(summary(m_size_path))[, "Std. Error"]
+
 
 m_Hist_grade<-lm(Y_d~Hist_grade, data=ans2)
 summary(m_Hist_grade) #This one seems to differ 
+std_err_hg<-coef(summary(m_Hist_grade))[, "Std. Error"]
 
 m_Subtype<-lm(Y_d~Subtype, data=ans2)
 summary(m_Subtype)
+std_err_s<-coef(summary(m_Subtype))[, "Std. Error"]
+
 
 # I will use the lm function to evaluate the rest of the variables BUT if I was to do it by hand, it would follow the formats about for beta1_size, beta1_size_norm, beta0_size, and beta0_size_norm
 
@@ -366,10 +374,97 @@ summary(m_Subtype)
 library(lm.beta) 
 Std_beta_coeff_Y_norm_size<-lm.beta(m_size_path_norm)
 summary(Std_beta_coeff_Y_norm_size)
+coeff_size_norm<- Std_beta_coeff_Y_norm_size$coefficients
+std_coeff_size_norm<- Std_beta_coeff_Y_norm_size$standardized.coefficients
 
-library(lm.beta) 
+
 Std_beta_coeff_Y_size<-lm.beta(m_size_path)
 summary(Std_beta_coeff_Y_size)
+coeff_size<- Std_beta_coeff_Y_size$coefficients
+std_coeff_size<- Std_beta_coeff_Y_size$standardized.coefficients
+
+
+std_beta_hist_norm<- lm.beta(m_Hist_grade_norm)
+summary(std_beta_hist_norm)
+coeff_hist_norm<- std_beta_hist_norm$coefficients
+std_coeff_hist_norm<- std_beta_hist_norm$standardized.coefficients
+
+std_beta_hist<-lm.beta(m_Hist_grade)
+summary(m_Hist_grade)
+coeff_hist<- std_beta_hist$coefficients
+std_coeff_hist<- std_beta_hist$standardized.coefficients
+
+
+std_beta_sub_norm<- lm.beta(m_Subtype_norm)
+summary(std_beta_sub_norm)
+coeff_norm_sub<- std_beta_sub_norm$coefficients
+std_coeff_norm_sub<- std_beta_sub_norm$standardized.coefficients
+
+
+std_beta_sub<- lm.beta(m_Subtype)
+summary(std_beta_sub)
+coeff_sub<- std_beta_sub$coefficients
+std_coeff_sub<- std_beta_sub$standardized.coefficients
+
+
+samp_2_summary <- as_tibble(t(bind_rows(coeff_hist, std_err_hg,std_coeff_hist)), .name_repair = "minimal")  
+samp_2_summary1 <- as_tibble(t(bind_rows( coeff_hist_norm, std_err_hgn,std_coeff_hist_norm)), .name_repair = "minimal")  
+
+samp_3_summary<- as_tibble(t(bind_rows(coeff_size,  std_err_sp, std_coeff_size)), .name_repair = "minimal")
+samp_3_summary1<- as_tibble(t(bind_rows(coeff_size_norm,  std_err_pn, std_coeff_size_norm)), .name_repair = "minimal")
+
+samp_4_summary<- as_tibble(t(bind_rows(coeff_sub, std_err_s, std_coeff_sub)), .name_repair = "minimal")
+samp_4_summary1<- as_tibble(t(bind_rows( coeff_norm_sub,  std_err_sn, std_coeff_norm_sub)), .name_repair = "minimal")
+
+samp_2_summary<-samp_2_summary[-c(1), ] 
+samp_3_summary<-samp_3_summary[-c(1), ] 
+samp_4_summary<-samp_4_summary[-c(1), ] 
+
+
+samp_2_summary1<-samp_2_summary1[-c(1), ] 
+samp_3_summary1<-samp_3_summary1[-c(1), ] 
+samp_4_summary1<-samp_4_summary1[-c(1), ] 
+
+Y_dist_data<- bind_rows(samp_2_summary,samp_3_summary,samp_4_summary, samp_2_summary1, samp_3_summary1, samp_4_summary1)
+
+names(Y_dist_data) <- c("Beta Coefficient", "Standard Error","Standardized Beta Coefficient")
+
+variables <- tibble(Variable = c("Absolute y-axis Histological Grade", "Normalized y-axis Histological Grade", "Absolute y-axis Tumor Size", "Normalized y-axis Tumor Size", "Absolute y-axis Triple Negative", " Normalized y-axis Triple Negative"))
+Y_dist_data<- bind_cols(variables, Y_dist_data)
+kable(Y_dist_data, digits = 3) %>%
+  kable_styling(font_size = 12, full_width = FALSE)
+Y_dist_data
+
+#Do data Visualization now
+library(ggplot2)
+library(plotly)
+library(plot3D)
+library(cowplot)
+Norm_ER__plot<-scatter3D(ER_normX, ER_normY, ER_normZ, clab = c("ER Normalized", "Position (cm)"))
+
+Abs_ER__plot<-scatter3D(ER_X, ER_Y, ER_Z, clab = c("ER Absolute", "Position (cm)"))
+
+Norm_TN__plot<-scatter3D(Triple_neg_normX, Triple_neg_normY, Triple_neg_normZ, clab = c("ER Normalized", "Position (cm)"))
+
+Abs_TN__plot<-scatter3D(Triple_neg_X, Triple_neg_Y, Triple_neg_Z, clab = c("ER Absolute", "Position (cm)"))
+
+# Conc_plot<-plot_grid(Abs_ER__plot, Norm_ER__plot, Abs_TN__plot, Norm_TN__plot, labels = c('Absolute ER Position', 'Normalized ER Position', "Absolute Triple Negative Position", "Normalized Triple Negative Position"))
+# Conc_plot
+
+# color.vec2 <- rev(c("#F2DC5D", "#F2A359", "#DB9065", "#A4031F", "#240B36"))
+# color.vec3 <- rev(c("#F7AEF8", "#B388EB", "#8093F1", "#72DDF7", "#F4F4ED"))
+# ER_normX<- as.numeric(ER_normX)
+# fig.n2 <- plot_ly(x=ER_normX, y=ER_normY, z=ER_normZ, opacity=1, colorscale='Viridis')
+# fig.n2
+# 
+# 
+# equation1=function(x){coef(fit1)[2]*x+coef(fit1)[1]}
+# equation2=function(x){coef(fit1)[2]*x+coef(fit1)[1]+coef(fit1)[3]}
+# 
+# ggplot(radial,aes(y=NTAV,x=age,color=sex))+geom_point()+
+#         stat_function(fun=equation1,geom="line",color=scales::hue_pal()(2)[1])+
+#         stat_function(fun=equation2,geom="line",color=scales::hue_pal()(2)[2])
+
 
 #can just do all with the lm beta
 
