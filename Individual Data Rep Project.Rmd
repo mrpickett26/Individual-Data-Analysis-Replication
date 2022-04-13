@@ -448,6 +448,19 @@ Norm_TN__plot<-scatter3D(Triple_neg_normX, Triple_neg_normY, Triple_neg_normZ, c
 
 Abs_TN__plot<-scatter3D(Triple_neg_X, Triple_neg_Y, Triple_neg_Z, clab = c("ER Absolute", "Position (cm)"))
 
+library(dotwhisker)
+m_yd <- lm(normY_d ~ Size_pathol + Hist_grade + Subtype, data = ans2)
+m_y<-lm(Y_d~Size_pathol + Hist_grade + Subtype, data = ans2)
+dwplot(list(m_yd, m_y), show_intercept = FALSE) +
+            scale_y_discrete(labels=c("Size_pathol" = "Tumor Size (cm)", "Hist_grade" = "Histological Grade",
+                        "Subtype" ="Subtype"))+scale_color_hue(labels = c("Normalized y-axis position", "Absolute y-axis position"))+ theme(plot.title = element_text(face="bold"))+ggtitle("Regression Coefficients for Breast Tumor Y-axis positions")
+                
+
+
+
+
+
+
 # Conc_plot<-plot_grid(Abs_ER__plot, Norm_ER__plot, Abs_TN__plot, Norm_TN__plot, labels = c('Absolute ER Position', 'Normalized ER Position', "Absolute Triple Negative Position", "Normalized Triple Negative Position"))
 # Conc_plot
 
