@@ -501,5 +501,7 @@ plot(m_size_path)
 
 
 ## Discussion: In the dot and whisker plot we can see that the 99% confidence intervals for the absolute y-valus are much broader than those of the normalized points. In terms of the residuals vs fitted plot for both y values, the data does not appear to have any linearity- I am not sure what type of model I would even fit it to because it is so left skewed. I believe that this further supports my hypothesis that there was a significant amount of data cleaning for outliars in the post processing that would allow for a linear model. For the QQ plots, the absolute y-axis QQplot looks to be very nicely normally distributed, whereas the normalized y-axis data looks to be multimodal on the qq plot. 
+
+##Overall discussion/conclusion: The counts and percentages within the descriptive statistics analysis matched exactly what was reported in the literature, which confirmed that the n values were as what was reported in the table. However, as I dove deeper into the means and range values they were both trending higher than what was reported in the literature. To me this indicated that there was outliar testing and removal before the authors processed their datasets. Additionally, after looking at the linear model plots it looks like both the absolute and normalized y-distance data are normally distriibuted.  
 ```
 
