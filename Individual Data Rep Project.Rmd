@@ -29,6 +29,7 @@ tidy.opts = list(blank = FALSE, width.cutoff = 75),
 fig.path = "Kim et_al_photos/", # name of folder for images
 fig.align = "center" # centers any images on the page
 )
+#Introduction: This paper is focused on using Magnetic Resonance Imaging (MR) to determine the location of tumors, specifically of the the Estrogen-repceptor positive (ER) and Triple Negative (TN) subtypes. Triple Negative breast cancer is known to be highly aggressive and invasive, with outcomes that typically differ from those with ER subtypes. This paper utilized multiple regression analysis to determine which clincopathological predictor were significant in predicting cancer position and found that age, mammographic density, subtype, and axilary nodal status were significantly associated with the y-distances from the chest wall (both absolute and normalized). In this report I explore several of those variables. Unfortunately, some of the significant variables are not included in the raw dataset. 
 ```
 
 ```{r Descriptive Stats}
@@ -39,9 +40,9 @@ head(d)
 skim(d) #getting some quick stats before filtering... based on raw data a lot of filtering needs to occur but useful for a couple variables
 knitr::opts_chunk$set(fig.path = "Kim_et_al_photos/")
 
-# DESCRIPTIVE STATISTICS
+#BEGIN HEAVY DESCRIPTIVE STATISTICS
 
-##Want to separate data out into the two different subtypes (ER and Triple Negative), key factor in the paper. In this section I focus on the Triple Negative subtype. From this filtered dataset, I create variables for the number (counts) of each histological grade as well as the percentage of each histological grade within the population. I wrote a function that included n in it because later on, I will have to filter out some of the NAs that are in the raw dataset and this made it easier. 
+##I wanted to separate data out into the two different subtypes (ER and Triple Negative), which is a key factor in the paper. In this section I focus on the Triple Negative subtype. From this filtered dataset, I created variables for the number (counts) of each histological grade as well as the percentage of each histological grade within the population. I wrote a function that included n within it because later on, I will have to filter out some of the NAs that are in the raw dataset, making the n value vary from variable to variable, and this made it easier. 
 Triple_neg<-filter(d, Subtype=="3")
 n<- nrow(Triple_neg)
 
@@ -56,7 +57,7 @@ T_hist_grade1_percent<- percent(T_Hist_grade_1)
 T_hist_grade2_percent<- percent(T_hist_grade_2)
 T_hist_grade3_percent<- percent(T_hist_grade_3)
 
-## T_Hist_grade tells the number of patients whose identified cancers belong to each type. 
+## T_Hist_grade tells the number of patients whose identified cancers belong to each histological type. 
 ## Here I replace the #NULL! with NA so that I can filter it out into a new dataframe. I then convert it into a numeric so that it can be passed through the built in mean function.
 ans <- Triple_neg %>% replace(.=="#NULL!", NA) 
 g<-ans[!is.na(ans$Size_Pathol_cm_),]
@@ -64,21 +65,22 @@ Mean_Size_T<-as.numeric(g$Size_Pathol_cm_)
 Mean_size_Trip_neg<-mean(Mean_Size_T) 
 ## After finding the  mean of the size of the triple negative tumor in cm after omitting all #NULL! values, I think the data set in the paper  maybe replaced the Null values  with 0  or used the n of 256 to calculate the mean because my mean is slightly higher
 Range_size_trip_neg<- range(Mean_Size_T)
+Range_size_trip_neg
 #Found the range of values for the tumor size. The paper says that the range of the values for tumor size are (0.2-5.4), whereas my calculations indicate that the range extends up to 9.3. 
 
-#Palpability
+##Now I filtered the data for Palpability
 Triple_neg$Palpability[Triple_neg$Palpability=="1"]<-"No"
 Triple_neg$Palpability[Triple_neg$Palpability=="0"]<-"Yes"
-##Changed the 1 and 0s found in Palpability to Yes and No values, and now count the number of yes and no values 
+##Changed the 1 and 0s found in Palpability to Yes and No values (kind of arbitrary, but I thought it was good practice for data coding), and now I counted the number of yes and no values.
 No<-(length(which(Triple_neg$Palpability=="No")))
 Yes<-(length(which(Triple_neg$Palpability=="Yes")))
 Percent_palp<- percent(Yes)
 Percent_not_palp<-percent(No)
 ##Calculated the number and percentage of palpable vs not palpable tumors in the Triple Negative subtype, using the function as defined above. I thought it was easiest to assign them into new variable in order to format them into the table properly.
 
-##Now I will assign the numeric positional data to new values which will make it easier to filter out the data and do further analyses, again I thought variable assignment was the best for later calculations.
-UOQ<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="1")))
-percent_UOQ<-percent(UOQ)
+##Now I will assign the numeric positional data to new values which will make it easier to filter out the data and do further analyses, again I thought variable assignment was the best for later calculations. I filtered within one line of code. I know this could be done through dplyr, but I wasn't sure how easy the variable reassignment and table creation would have been. 
+UOQ<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="1"))) #codes the data and counts for it within the df
+percent_UOQ<-percent(UOQ) ## percentage of counts from n as the previously described function
 UIQ<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="2")))
 percent_UIQ<-percent(UIQ)
 LOQ<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="3")))
@@ -88,7 +90,7 @@ percent_LIQ<-percent(LIQ)
 periareolar<-(length(which(Triple_neg$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="5")))
 percent_periareolar<-percent(periareolar)
 
-##Doing the assignments for mediolateral locations
+##I did similar assignments for mediolateral locations.
 medial<-(length(which(Triple_neg$MR_Location_ML__1__medial_2__central_3__lateral_=="1")))
 percent_medial<-percent(medial)
 central<-(length(which(Triple_neg$MR_Location_ML__1__medial_2__central_3__lateral_=="2")))
@@ -96,7 +98,7 @@ percent_central<-percent(central)
 lateral<-(length(which(Triple_neg$MR_Location_ML__1__medial_2__central_3__lateral_=="3")))
 percent_lateral<-percent(lateral)
 
-##Doing the same assignments for anteroposterior locations
+##Similar assignments for anteroposterior locations.
 anterior<-(length(which(Triple_neg$MR_Location_AP__1__anterior_2__middle_3__posterior_=="1")))
 percent_anterior<-percent(anterior)
 middle<-(length(which(Triple_neg$MR_Location_AP__1__anterior_2__middle_3__posterior_=="2")))
@@ -104,11 +106,11 @@ percent_middle<-percent(middle)
 posterior<-(length(which(Triple_neg$MR_Location_AP__1__anterior_2__middle_3__posterior_=="3")))
 percent_posterior<-percent(posterior)
 
-## Now I will filter the data for ER and conduct descriptive stats on it 
-ER_pos<-filter(d, Subtype=="1")
-n_E<- nrow(ER_pos)
+## Now I will filter the data for ER  subtype and conduct essentially the same descriptive stats on it as I did for TN.
+ER_pos<-filter(d, Subtype=="1") ## Filter out the data into new df
+n_E<- nrow(ER_pos) ##double checking I coded correctly :) 
 
-##Histological Grade filtering, and wrote a new function for percent to account for the change in n. 
+##Histological Grade filtering for the ER subtype, and wrote a new function for percent to account for the change in n (same issue as before where the n value is differing from variable to variable). 
 T_Hist_grade_1_E<-(length(which(ER_pos$Histologic_full=="1")))
 T_hist_grade_2_E<-(length(which(ER_pos$Histologic_full=="2")))
 T_hist_grade_3_E<-(length(which(ER_pos$Histologic_full=="3")))
@@ -124,15 +126,14 @@ T_hist_grade3E_percent<- percentE(T_hist_grade_3_E)
 ans <- ER_pos %>% replace(.=="#NULL!", NA) 
 Eg<-ans[!is.na(ans$Size_Pathol_cm_),]
 Mean_Size_E<-as.numeric(Eg$Size_Pathol_cm_)
-Mean_size_ER<-mean(Mean_Size_E)
-Mean_size_ER
+Mean_size_ER<-mean(Mean_Size_E) ## Mean of ER subtype
 
-Range_size_ER<- range(Eg$Size_Pathol_cm_)
+Range_size_ER<- range(Eg$Size_Pathol_cm_) #Range of ER subtype
 Range_size_ER
 ## Again, the values I got for both the range and mean of the subtype differ from what is reported. Could be attributed to replacement with zeros or averaging with filtered data. Unsure why the range is different than reported.... The filtering was done correctly. 
 
 ## Now ran the statistics for the palpability of ER data. 
-No_ER<-(length(which(ER_pos$Palpability=="1")))
+No_ER<-(length(which(ER_pos$Palpability=="1"))) ## Didn't change to yes or no in the df for ER because that seemed redundant
 Yes_ER<-(length(which(ER_pos$Palpability=="0")))
 Percent_palpE<- percentE(Yes_ER)
 Percent_not_palpE<-percentE(No_ER)
@@ -149,15 +150,15 @@ percent_LIQ_E<-percentE(LIQ_E)
 periareolar_E<-(length(which(ER_pos$Qudrants2_1_UOQ_2_UIQ_3_LOQ_4_LIQ_5_periareolar_6___overlapping=="5")))
 percent_periareolar_E<-percentE(periareolar_E)
 
-## Do the same for mediolateral locations. Assign valulations to  variables to be put in a table. 
+##ER: Do the same for mediolateral locations. Assign  to  variables to be put in a table. 
 medial_E<-(length(which(ER_pos$MR_Location_ML__1__medial_2__central_3__lateral_=="1")))
 percent_medial_E<-percentE(medial_E)
 central_E<-(length(which(ER_pos$MR_Location_ML__1__medial_2__central_3__lateral_=="2")))
 percent_central_E<-percentE(central_E)
 lateral_E<-(length(which(ER_pos$MR_Location_ML__1__medial_2__central_3__lateral_=="3")))
-percent_lateral_E<-percent(lateral_E)
+percent_lateral_E<-percentE(lateral_E)
 
-#ER now do the same assignments for anteroposterior locations
+#ER: DO the same assignments for anteroposterior locations
 anterior_E<-(length(which(ER_pos$MR_Location_AP__1__anterior_2__middle_3__posterior_=="1")))
 percent_anterior_E<-percentE(anterior_E)
 middle_E<-(length(which(ER_pos$MR_Location_AP__1__anterior_2__middle_3__posterior_=="2")))
@@ -180,44 +181,44 @@ bind_col
 knitr::include_graphics("Kim_et_al_photos/count_table.jpg")
 knitr::include_graphics("Kim_et_al_photos/location_table.jpg")
 
+## Discussion of results: All of the counts and percentage data matched the data found in the paper. This means that even though some data points were deleted by omitting the NULL values in the raw dataset, the n values as reported were used to calculate the percentages. While this was a simple data analysis for descriptive stats, it tells us confidently that the variables used later on for regression analysis were correct. 
 ```
 
-```{r, Finishing up Descriptive and beginning Inferential Stats, warning=TRUE}
-
+```{r, Finishing up Descriptive and beginning Data Cleaning for Inferential Stats, warning=TRUE}
 
 #More Descriptive Stats
 
-## Need to filter out the normalized distance from the chest wall and distance from the chest wall, need to relplace the NULL with NA in order to have a tidy dataset that I can use for future calculations. I decided to filter all of the positional data, so that I could use it for visualization in the next step. 
+## Need to filter out the normalized distance from the chest wall and distance from the chest wall, need to replace the NULL with NA in order to have a clean dataset that I can use for future calculations. I decided to filter ALL of the positional data , so that I could use it for visualization in the next step. 
 
 Triple_neg_normY <- Triple_neg$Y_normalized%>%
   replace(.=="#NULL!", NA) 
 Triple_neg_normY<- na.omit(Triple_neg_normY)
-m_Triple_neg_normY<- mean(Triple_neg_normY)
+m_Triple_neg_normY<- mean(Triple_neg_normY) ## Filtering out the y-normalized distances from dataset.
 
 Triple_neg_normX <- Triple_neg$X_normalized%>%
   replace(.=="#NULL!", NA) 
 Triple_neg_normX<- na.omit(Triple_neg_normX)
-m_Triple_neg_normX<- mean(Triple_neg_normX)
+m_Triple_neg_normX<- mean(Triple_neg_normX) ## Filtering out the x-normalized distances from dataset.
 
 Triple_neg_normZ <- Triple_neg$Z_normalized%>%
   replace(.=="#NULL!", NA) 
 Triple_neg_normZ<- na.omit(Triple_neg_normZ)
-m_Triple_neg_normZ<- mean(Triple_neg_normZ)
+m_Triple_neg_normZ<- mean(Triple_neg_normZ)## Filtering out the z-normalized distances from dataset.
 
 Triple_neg_Y <- Triple_neg$Y_distance%>%
   replace(.=="#NULL!", NA) 
 Triple_neg_Y<- na.omit(Triple_neg_Y)
-m_Triple_neg_Y<- mean(Triple_neg_Y)
+m_Triple_neg_Y<- mean(Triple_neg_Y)## Filtering out the y-absolute distances from dataset.
 
 Triple_neg_X <- Triple_neg$X_distance%>%
   replace(.=="#NULL!", NA) 
 Triple_neg_X<- na.omit(Triple_neg_X)
-m_Triple_neg_X<- mean(Triple_neg_X)
+m_Triple_neg_X<- mean(Triple_neg_X)## Filtering out the x-absolute distances from dataset.
 
 Triple_neg_Z <- Triple_neg$Z_distance%>%
   replace(.=="#NULL!", NA) 
 Triple_neg_Z<- na.omit(Triple_neg_Z)
-m_Triple_neg_Z<- mean(Triple_neg_Z)
+m_Triple_neg_Z<- mean(Triple_neg_Z)## Filtering out the z-absolute distances from dataset.
 
 ## Do the same positional filtering for ER data. 
 ER_normY <- ER_pos$Y_normalized%>%
@@ -250,7 +251,7 @@ ER_Z <- ER_pos$Z_distance%>%
 ER_Z<- na.omit(ER_Z)
 m_ER_Z<- mean(ER_Z)
 
-## Begin doing inferential stats, assume normal distribution for standard error and confidence intervals. I created a function for both of them and will use it to define variables in the future. 
+## Begin doing inferential stats, assume normal distribution for standard error and confidence intervals. I created a function for both of them and will use it to define variables for inferential statistical values for the positional data in the future. 
 SE <- function(x, type="normal") {
   if (type=="normal"){
     SE <- sd(x)/sqrt(length(x))
@@ -272,70 +273,72 @@ CI_norm <- function(x, alpha = 0.05) {
 ## Now take the data and filter it by positional filters and pass through the functions needed to get the variables of interest for the summary table that will later be created. 
 ER_means <- ER_pos %>% dplyr::summarise(across(
   .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
-.fns = ~ mean(.)))
+.fns = ~ mean(.))) ## ER: finding mean of variables
 
 ER_SD <- ER_pos %>% dplyr::summarise(across(
   .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
-.fns = ~ sd(.)))
+.fns = ~ sd(.))) ## ER:finding SD of variables
 
 ER_SEs <- ER_pos %>% dplyr::summarise(across(
     .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
-.fns = ~ SE(., type = "normal")))
+.fns = ~ SE(., type = "normal"))) ## ER: Assume normal distribution, finding standard error of variables
 
 ER_CI_norm <- ER_pos %>%
 dplyr::summarise(across(
   .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
-  .fns = ~ CI_norm(.)))
+  .fns = ~ CI_norm(.))) ## ER:Finding 95% confidence intervals
 
 TN_means <- Triple_neg %>% dplyr::summarise(across(
   .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
-.fns = ~ mean(.)))
+.fns = ~ mean(.)))## TN: finding mean of variables
 
 TN_SD <- Triple_neg %>% dplyr::summarise(across(
   .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
-.fns = ~ sd(.)))
+.fns = ~ sd(.)))## TN:finding SD of variables
 
 TN_SEs <- Triple_neg %>% dplyr::summarise(across(
     .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
-.fns = ~ SE(., type = "normal")))
+.fns = ~ SE(., type = "normal")))## TN: Assume normal distribution, finding standard error of variables
+
 
 TN_CI_norm <- Triple_neg %>%
 dplyr::summarise(across(
   .cols = c(Y_distance, X_distance, Z_distance, Y_normalized, X_normalized, Z_normalized),
-  .fns = ~ CI_norm(.)))
+  .fns = ~ CI_norm(.)))## TN:Finding 95% confidence intervals
 
-## Not perform t-tests on on the variables/filtered data in order to extract the p-values needed for the tables. 
+## Now I will  perform t-tests on on the variables/filtered data in order to extract the p-values needed for the tables. 
 
 X_norm<-t.test(ER_normX, Triple_neg_normX)
 p_x_norm<- X_norm$p.value
-
 Y_norm<-t.test(ER_normY, Triple_neg_normY)
 p_y_norm<- Y_norm$p.value
-
 Z_norm<-t.test(ER_normZ, Triple_neg_normZ)
 p_Z_norm<- Z_norm$p.value
-
 Z_dist<-t.test(ER_Z, Triple_neg_Z)
 p_Z<- Z_dist$p.value
-
 x_dist<-t.test(ER_X, Triple_neg_X)
 p_x<- x_dist$p.value
-
 y_dist<-t.test(ER_Y, Triple_neg_Y)
 p_y<- y_dist$p.value
 
-##Create the second descriptive table found in the paper
+p<- c(p_y, p_x, p_Z, p_y_norm, p_x_norm, p_Z_norm)
+##Create the second descriptive table found in the paper using the data that I filtered and calculated.  
 samp_1_summary <- as_tibble(t(bind_rows(ER_means, TN_means, ER_SD, TN_SD, ER_SEs, TN_SEs, ER_CI_norm, TN_CI_norm)), .name_repair = "minimal")
-names(samp_1_summary) <- c(" ER Mean", "TN Mean", "ER SD", "TN SD", "ER Std Error", "TN Std Error", "ER Confidence Interval L", "ER Confidence Interval U", "TN Confidence Interval L", "TN Confidence Interval U")
-variables <- tibble(Variable = c("Y_distance", "X_distance", "Z_distance", "Y_normalized", "X_normalized", "Z_normalized"))
+Samp_fin_sum<- bind_cols(samp_1_summary,p)
+# p<-as_tibble(t(bind_rows(p_y, p_x, p_Z, p_y_norm, p_x_norm, p_Z_norm, .name_repair = "minimal")))
+names(Samp_fin_sum) <- c(" ER Mean", "TN Mean", "ER SD", "TN SD", "ER Std Error", "TN Std Error", "ER Confidence Interval L", "ER Confidence Interval U", "TN Confidence Interval L", "TN Confidence Interval U","P Value")
+variables_sum<- tibble(Variable = c("Y_distance", "X_distance", "Z_distance", "Y_normalized", "X_normalized", "Z_normalized"))
 
-samp_summary <- bind_cols(variables, samp_1_summary)
+samp_summary <- bind_cols(variables_sum, Samp_fin_sum)
 
-kable(samp_1_summary, digits = 3) %>%
+kable(samp_summary, digits = 3) %>%
   kable_styling(font_size = 12, full_width = FALSE)
 samp_summary
 
 knitr::include_graphics("Kim_et_al_photos/distance_table.jpg")
+
+## Discussion: Overall the values are close to what is seen in the paper, but overall they are a little bit higher. When I calculated ranges earlier on for exploratory descriptive analysis, it looked like some of the outliars for tumor size were excluded from further analysis because it included an upper bound that was much higher than reported in the literature. I am assuming this is what is slightly skewing some of the values (I only did ranges for the y-values, but it would be interesting to see how the others compared).
+
 ```
 
 ```{r, Inferential Stats, warning=TRUE}
@@ -378,27 +381,27 @@ std_err_b1_dist
 ##I will use the lm function to evaluate the rest of the variables BUT if I was to do it by hand, it would follow the formats about for beta1_size, beta1_size_norm, beta0_size, and beta0_size_norm
 
 ##Now utilize the lm function to double check calculations and calculate the beta coefficients of absolute/normalized against selected variables (subtype, size, histological grade). I chose subtype because it is foundational to the paper, size becuase the data is continuous, and histological grade because it was good for me to practice categorical data analysis and it was in a relatively clean format.  
-m_size_path_norm<-lm(normY_d~Size_pathol, data=ans2)
+m_size_path_norm<-lm(normY_d~Size_pathol)
 summary(m_size_path_norm)
-std_err_pn<-coef(summary(m_size_path_norm))[, "Std. Error"]
+std_err_pn<-coef(summary(m_size_path_norm))[, "Std. Error"] ##Pull out standard error for table
 
-m_Hist_grade_norm<-lm(normY_d~Hist_grade, data=ans2)
+m_Hist_grade_norm<-lm(normY_d~Hist_grade)
 summary(m_Hist_grade_norm) #This one seems to differ 
 std_err_hgn<-coef(summary(m_Hist_grade_norm))[, "Std. Error"]
 
-m_Subtype_norm<-lm(normY_d~Subtype, data=ans2)
+m_Subtype_norm<-lm(normY_d~Subtype)
 summary(m_Subtype_norm)
 std_err_sn<-coef(summary(m_Subtype_norm))[, "Std. Error"]
 
-m_size_path<-lm(Y_d~Size_pathol, data=ans2)
+m_size_path<-lm(Y_d~Size_pathol)
 summary(m_size_path)
 std_err_sp<-coef(summary(m_size_path))[, "Std. Error"]
 
-m_Hist_grade<-lm(Y_d~Hist_grade, data=ans2)
+m_Hist_grade<-lm(Y_d~Hist_grade)
 summary(m_Hist_grade) #This one seems to differ 
 std_err_hg<-coef(summary(m_Hist_grade))[, "Std. Error"]
 
-m_Subtype<-lm(Y_d~Subtype, data=ans2)
+m_Subtype<-lm(Y_d~Subtype)
 summary(m_Subtype)
 std_err_s<-coef(summary(m_Subtype))[, "Std. Error"]
 
@@ -407,39 +410,39 @@ std_err_s<-coef(summary(m_Subtype))[, "Std. Error"]
 
 Std_beta_coeff_Y_norm_size<-lm.beta(m_size_path_norm)
 summary(Std_beta_coeff_Y_norm_size)
-coeff_size_norm<- Std_beta_coeff_Y_norm_size$coefficients
-std_coeff_size_norm<- Std_beta_coeff_Y_norm_size$standardized.coefficients
+coeff_size_norm<- m_size_path_norm$coefficients
+std_coeff_size_norm<- Std_beta_coeff_Y_norm_size$standardized.coefficients ## pull out the value from the lm table of standardized coefficicents
 
 Std_beta_coeff_Y_size<-lm.beta(m_size_path)
 summary(Std_beta_coeff_Y_size)
-coeff_size<- Std_beta_coeff_Y_size$coefficients
+coeff_size<- m_size_path$coefficients
 std_coeff_size<- Std_beta_coeff_Y_size$standardized.coefficients
 
 std_beta_hist_norm<- lm.beta(m_Hist_grade_norm)
 summary(std_beta_hist_norm)
-coeff_hist_norm<- std_beta_hist_norm$coefficients
+coeff_hist_norm<- m_Hist_grade_norm$coefficients
 std_coeff_hist_norm<- std_beta_hist_norm$standardized.coefficients
 
 std_beta_hist<-lm.beta(m_Hist_grade)
 summary(m_Hist_grade)
-coeff_hist<- std_beta_hist$coefficients
+coeff_hist<- m_Hist_grade$coefficients
 std_coeff_hist<- std_beta_hist$standardized.coefficients
 
 std_beta_sub_norm<- lm.beta(m_Subtype_norm)
 summary(std_beta_sub_norm)
-coeff_norm_sub<- std_beta_sub_norm$coefficients
+coeff_norm_sub<- m_Subtype_norm$coefficients
 std_coeff_norm_sub<- std_beta_sub_norm$standardized.coefficients
 
 std_beta_sub<- lm.beta(m_Subtype)
 summary(std_beta_sub)
-coeff_sub<- std_beta_sub$coefficients
+coeff_sub<- m_Subtype$coefficients
 std_coeff_sub<- std_beta_sub$standardized.coefficients
 
 ## Now creating the table that is seen in the paper for inferential stats (beta, standard err, standardized beta). Pulling all of the "outputs" out of the summary table and creating a tibble to bind together into the larger table. 
 samp_2_summary <- as_tibble(t(bind_rows(coeff_hist, std_err_hg,std_coeff_hist)), .name_repair = "minimal")  
 samp_2_summary1 <- as_tibble(t(bind_rows( coeff_hist_norm, std_err_hgn,std_coeff_hist_norm)), .name_repair = "minimal")  
 
-samp_3_summary<- as_tibble(t(bind_rows(coeff_size,  std_err_sp, std_coeff_size)), .name_repair = "minimal")
+samp_3_summary<- as_tibble(t(bind_rows(coeff_size, std_err_sp, std_coeff_size)), .name_repair = "minimal")
 samp_3_summary1<- as_tibble(t(bind_rows(coeff_size_norm,  std_err_pn, std_coeff_size_norm)), .name_repair = "minimal")
 
 samp_4_summary<- as_tibble(t(bind_rows(coeff_sub, std_err_s, std_coeff_sub)), .name_repair = "minimal")
@@ -457,7 +460,7 @@ Y_dist_data<- bind_rows(samp_2_summary,samp_3_summary,samp_4_summary, samp_2_sum
 
 names(Y_dist_data) <- c("Beta Coefficient", "Standard Error","Standardized Beta Coefficient")
 
-variables <- tibble(Variable = c("Absolute y-axis Histological Grade", "Normalized y-axis Histological Grade", "Absolute y-axis Tumor Size", "Normalized y-axis Tumor Size", "Absolute y-axis Triple Negative", " Normalized y-axis Triple Negative"))
+variables <- tibble(Variable = c("Absolute y-axis Histological Grade", "Absolute y-axis Tumor size(cm)",  "Absolute y-axis Triple Negative",  "Normalized y-axis Histological Grade", "Normalized y-axis Tumor Size", " Normalized y-axis Triple Negative"))
 Y_dist_data<- bind_cols(variables, Y_dist_data)
 kable(Y_dist_data, digits = 3) %>%
   kable_styling(font_size = 12, full_width = FALSE)
@@ -465,11 +468,14 @@ Y_dist_data
 
 knitr::include_graphics("Kim_et_al_photos/inferential_table.jpg")
 
+#Discussion: Much like the previous section, the beta coefficients that I ran are lower than what is reported in the literature. Again, I think this could be due to the fact that the data they ran their analyses on likely included outliar testing (because the ranges of the data differ from my findings to the literature). The regression coefficients are relatively close for Tumor Size and Subtype, however. For Histological grade it is significantly different. I am afraid that this is due to the fact it is categorical data and I did not account for that. The standardized beta coefficients are also lower (except for the normalized Y tumor size), but they are closer in comparison overall (probably due to standardization).
+  
 
 ```
 
 ```{r, Data Visualization}
 #DATA VISUALIZATION
+
 ##Do data visualization now. No real visualization in the paper, so I chose a 3D plot of the positional data of the different cancer subtypes for both normalized and absolute. This allows me to visualize the distribution of where each tumor is located and how the normalization shifts the positions of the data. 
 
 Norm_ER__plot<-scatter3D(ER_normX, ER_normY, ER_normZ, clab = c("ER Normalized", "Position (cm)"))
@@ -484,17 +490,16 @@ Abs_TN__plot<-scatter3D(Triple_neg_X, Triple_neg_Y, Triple_neg_Z, clab = c("TN A
 
 ## Because the data is categorical, I decided that it didn't make much sense to plot all of them as scatter plots, but that a dot and whisker plot might be more intuitive. The dots represent the regression coefficients of the two separate models and the whiskers represent the 99% confidence intervals (as specified in the code) 
 
-dwplot(list( m_Hist_grade, m_Hist_grade_norm, m_Subtype,m_Subtype_norm, m_size_path, m_size_path_norm), ci=0.99, show_intercept = FALSE) +scale_y_discrete(labels=c("Subtype" ="", "Hist_grade"="Histological Grade","Size_pathol" = "Subtype"))+scale_color_hue(labels = c( "Normalized y-axis position", "Absolute y-axis position", "Normalized y-axis position", "Absolute y-axis position","Normalized y-axis position", "Absolute y-axis position"))+ theme(plot.title = element_text(face="bold"))+ggtitle("Regression Coefficients for Breast Tumor Y-axis positions")+xlab("Standardized Beta Coefficient")
-## I don't know why the labels on the y axis have to be switched to be correct... I went back and checked and the models earlier and they are labelled correctly and everything. Not super familiar with dotwhisker. 
+dwplot(list( m_Hist_grade, m_Hist_grade_norm, m_Subtype,m_Subtype_norm, m_size_path, m_size_path_norm), ci=0.99, show_intercept = FALSE) +scale_y_discrete(labels=c("Subtype" ="Subtype", "Hist_grade"="Histological Grade","Size_pathol" = "Tumor Size (cm)"))+scale_color_hue(labels = c( "Normalized y-axis position", "Absolute y-axis position", "Normalized y-axis position", "Absolute y-axis position","Normalized y-axis position", "Absolute y-axis position"))+ theme(plot.title = element_text(face="bold"))+ggtitle("Regression Coefficients for Breast Tumor Y-axis positions")+xlab("Standardized Beta Coefficient")
 
 #Normalized y-axis and Tumor Size
 plot(m_size_path_norm)
+
 
 #Absolute y-axis and Tumor Size
 plot(m_size_path)
 
 
-
-
+## Discussion: In the dot and whisker plot we can see that the 99% confidence intervals for the absolute y-valus are much broader than those of the normalized points. In terms of the residuals vs fitted plot for both y values, the data does not appear to have any linearity- I am not sure what type of model I would even fit it to because it is so left skewed. I believe that this further supports my hypothesis that there was a significant amount of data cleaning for outliars in the post processing that would allow for a linear model. For the QQ plots, the absolute y-axis QQplot looks to be very nicely normally distributed, whereas the normalized y-axis data looks to be multimodal on the qq plot. 
 ```
 
