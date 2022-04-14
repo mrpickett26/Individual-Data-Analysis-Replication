@@ -5,15 +5,45 @@ date: "4/4/2022"
 output: html_document
 ---
 
+```{r setup, include=FALSE}
+library(dplyr)
+library(tidyverse)
+library(knitr)
+# These are some {knitr} options I typically use to format my 
+# ***RMarkdown*** documents in a consistent way
+# You should feel free to alter these or use other "chunk options" as
+# you see fit!
+# Sometimes, for example, you might want to suppress warnings or
+# messages, and that behavior can be set for specific code chunks in
+# the chunk header, e.g., ```{r warning = FALSE, echo = FALSE}
+knitr::opts_chunk$set(
+  eval = TRUE, # run code in code chunks
+  echo = TRUE, # render output of code chunks
+  warning = TRUE, # do not suppress "warnings"
+  message = TRUE, # do not suppress "messages"
+  comment = "##", # prefix for comment lines
+  prompt = ">", # prefix for code lines
+  tidy = TRUE,
+  tidy.opts = list(blank = FALSE, width.cutoff = 75),
+  fig.path = "Kim et_al_photos/", # name of folder for images
+  fig.align = "center" # centers any images on the page
+)
+```
+
+
+
+
 ```{r setup}
 #Loading in the dataset 
 library(dplyr)
 library(tidyverse)
+library(knitr)
 f <- "https://raw.githubusercontent.com/mrpickett26/Individual-Data-Analysis-Replication/main/tumor%20location%20raw%20data_final.csv"
 d <- read_csv(f, col_names = TRUE)
 head(d)
 library(skimr)
 skim(d) #getting some quick stats before filtering... based on raw data a lot of filtering needs to occur but useful for a couple variables
+knitr::opts_chunk$set(fig.path = "Kim_et_al_photos/")
 
 # DESCRIPTIVE STATISTICS
 
@@ -152,15 +182,22 @@ b<-c(Yes, No, UOQ, UIQ, LOQ, LIQ, periareolar, medial, central, lateral, anterio
 c<- 100* c(Percent_palp, Percent_not_palp, percent_UOQ, percent_UIQ, percent_LOQ, percent_LIQ, percent_periareolar, percent_medial, percent_central, percent_lateral, percent_anterior, percent_middle, percent_posterior, T_hist_grade1_percent, T_hist_grade2_percent, T_hist_grade3_percent)
 d<-c(Yes_ER, No_ER, UOQ_E, UIQ_E, LOQ_E, LIQ_E, periareolar_E, medial_E, central_E, lateral_E, anterior_E, middle_E, posterior_E, T_Hist_grade_1_E, T_hist_grade_2_E, T_hist_grade_3_E)
 e<- 100* c(Percent_palpE, Percent_not_palpE, percent_UOQ_E, percent_UIQ_E, percent_LOQ_E, percent_LIQ_E, percent_periareolar_E, percent_medial_E, percent_central_E, percent_lateral_E, percent_anterior_E, percent_middle_E, percent_posterior_E, T_hist_grade1E_percent, T_hist_grade2E_percent, T_hist_grade3E_percent)
-bind_col<-data.frame(Variables=a, TripleNegativeMeans=b, TripleNegativePercentages=c, ERMeans=d, ERPercentages=e)
+bind_col<-data.frame(Variables=a, Triple_Negative_Counts=b, Triple_Negative_Percentages=c, ER_Counts=d, ER_Percentages=e)
 
 library(kableExtra)
 
 kable(bind_col, digits = 3) %>%
   kable_styling(font_size = 12, full_width = FALSE)
 bind_col
+knitr::include_graphics("Kim_et_al_photos/count_table.jpg")
+knitr::include_graphics("Kim_et_al_photos/location_table.jpg")
 
-##INFERENTIAL STATISTICS
+```
+
+```{r setup}
+
+
+#More Descriptive Stats
 
 ## Need to filter out the normalized distance from the chest wall and distance from the chest wall, need to relplace the NULL with NA in order to have a tidy dataset that I can use for future calculations. I decided to filter all of the positional data, so that I could use it for visualization in the next step. 
 
@@ -310,7 +347,11 @@ kable(samp_1_summary, digits = 3) %>%
   kable_styling(font_size = 12, full_width = FALSE)
 samp_summary
 
+knitr::include_graphics("Kim_et_al_photos/distance_table.jpg")
+```
 
+```{r setup}
+# Inferential Stats
 #Do inferential stats for the paper, no distinction between TN and ER for calculations for the beta coefficients
 ## Reading in the data again because so mamy variables were defined before that it is just simpler for my brain to refilter based off of what is needed from the total dataset
 library(dplyr)
@@ -435,6 +476,12 @@ kable(Y_dist_data, digits = 3) %>%
   kable_styling(font_size = 12, full_width = FALSE)
 Y_dist_data
 
+knitr::include_graphics("Kim_et_al_photos/inferential_table.jpg")
+
+
+```
+
+```{r setup}
 #DATA VISUALIZATION
 ##Do data visualization now. No real visualization in the paper, so I chose a 3D plot of the positional data of the different cancer subtypes for both normalized and absolute. This allows me to visualize the distribution of where each tumor is located and how the normalization shifts the positions of the data. 
 library(ggplot2)
