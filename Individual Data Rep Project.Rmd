@@ -5,43 +5,37 @@ date: "4/4/2022"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 library(dplyr)
 library(tidyverse)
 library(knitr)
-# These are some {knitr} options I typically use to format my 
-# ***RMarkdown*** documents in a consistent way
-# You should feel free to alter these or use other "chunk options" as
-# you see fit!
-# Sometimes, for example, you might want to suppress warnings or
-# messages, and that behavior can be set for specific code chunks in
-# the chunk header, e.g., ```{r warning = FALSE, echo = FALSE}
+library(formatR)
+library(skimr)
+library(kableExtra)
+library(lm.beta) 
+library(lsr)
+library(ggplot2)
+library(plotly)
+library(plot3D)
+library(dotwhisker)
 knitr::opts_chunk$set(
-  eval = TRUE, # run code in code chunks
-  echo = TRUE, # render output of code chunks
-  warning = TRUE, # do not suppress "warnings"
-  message = TRUE, # do not suppress "messages"
-  comment = "##", # prefix for comment lines
-  prompt = ">", # prefix for code lines
-  tidy = TRUE,
-  tidy.opts = list(blank = FALSE, width.cutoff = 75),
-  fig.path = "Kim et_al_photos/", # name of folder for images
-  fig.align = "center" # centers any images on the page
+echo = TRUE, # render output of code chunks,
+warning = TRUE, # do not suppress "warnings"
+message = TRUE, # do not suppress "messages"
+title="#",
+comment = "##", # prefix for comment lines
+tidy = TRUE,
+tidy.opts = list(blank = FALSE, width.cutoff = 75),
+fig.path = "Kim et_al_photos/", # name of folder for images
+fig.align = "center" # centers any images on the page
 )
 ```
 
-
-
-
-```{r setup}
-#Loading in the dataset 
-library(dplyr)
-library(tidyverse)
-library(knitr)
+```{r Descriptive Stats}
+#Begin working on descriptive Stats 
 f <- "https://raw.githubusercontent.com/mrpickett26/Individual-Data-Analysis-Replication/main/tumor%20location%20raw%20data_final.csv"
 d <- read_csv(f, col_names = TRUE)
 head(d)
-library(skimr)
 skim(d) #getting some quick stats before filtering... based on raw data a lot of filtering needs to occur but useful for a couple variables
 knitr::opts_chunk$set(fig.path = "Kim_et_al_photos/")
 
@@ -63,18 +57,14 @@ T_hist_grade2_percent<- percent(T_hist_grade_2)
 T_hist_grade3_percent<- percent(T_hist_grade_3)
 
 ## T_Hist_grade tells the number of patients whose identified cancers belong to each type. 
-
 ## Here I replace the #NULL! with NA so that I can filter it out into a new dataframe. I then convert it into a numeric so that it can be passed through the built in mean function.
-
 ans <- Triple_neg %>% replace(.=="#NULL!", NA) 
 g<-ans[!is.na(ans$Size_Pathol_cm_),]
 Mean_Size_T<-as.numeric(g$Size_Pathol_cm_)
 Mean_size_Trip_neg<-mean(Mean_Size_T) 
-Mean_size_Trip_neg
 ## After finding the  mean of the size of the triple negative tumor in cm after omitting all #NULL! values, I think the data set in the paper  maybe replaced the Null values  with 0  or used the n of 256 to calculate the mean because my mean is slightly higher
 Range_size_trip_neg<- range(Mean_Size_T)
-Range_size_trip_neg
-#find the range of values for the tumor size. The paper says that the range of the values for tumor size are (0.2-5.4), whereas my calculations indicate that the range extends up to 9.3. 
+#Found the range of values for the tumor size. The paper says that the range of the values for tumor size are (0.2-5.4), whereas my calculations indicate that the range extends up to 9.3. 
 
 #Palpability
 Triple_neg$Palpability[Triple_neg$Palpability=="1"]<-"No"
@@ -184,8 +174,6 @@ d<-c(Yes_ER, No_ER, UOQ_E, UIQ_E, LOQ_E, LIQ_E, periareolar_E, medial_E, central
 e<- 100* c(Percent_palpE, Percent_not_palpE, percent_UOQ_E, percent_UIQ_E, percent_LOQ_E, percent_LIQ_E, percent_periareolar_E, percent_medial_E, percent_central_E, percent_lateral_E, percent_anterior_E, percent_middle_E, percent_posterior_E, T_hist_grade1E_percent, T_hist_grade2E_percent, T_hist_grade3E_percent)
 bind_col<-data.frame(Variables=a, Triple_Negative_Counts=b, Triple_Negative_Percentages=c, ER_Counts=d, ER_Percentages=e)
 
-library(kableExtra)
-
 kable(bind_col, digits = 3) %>%
   kable_styling(font_size = 12, full_width = FALSE)
 bind_col
@@ -194,7 +182,7 @@ knitr::include_graphics("Kim_et_al_photos/location_table.jpg")
 
 ```
 
-```{r setup}
+```{r, Finishing up Descriptive and beginning Inferential Stats, warning=TRUE}
 
 
 #More Descriptive Stats
@@ -317,7 +305,7 @@ dplyr::summarise(across(
   .fns = ~ CI_norm(.)))
 
 ## Not perform t-tests on on the variables/filtered data in order to extract the p-values needed for the tables. 
-library(lsr)
+
 X_norm<-t.test(ER_normX, Triple_neg_normX)
 p_x_norm<- X_norm$p.value
 
@@ -340,7 +328,7 @@ p_y<- y_dist$p.value
 samp_1_summary <- as_tibble(t(bind_rows(ER_means, TN_means, ER_SD, TN_SD, ER_SEs, TN_SEs, ER_CI_norm, TN_CI_norm)), .name_repair = "minimal")
 names(samp_1_summary) <- c(" ER Mean", "TN Mean", "ER SD", "TN SD", "ER Std Error", "TN Std Error", "ER Confidence Interval L", "ER Confidence Interval U", "TN Confidence Interval L", "TN Confidence Interval U")
 variables <- tibble(Variable = c("Y_distance", "X_distance", "Z_distance", "Y_normalized", "X_normalized", "Z_normalized"))
-library(kableExtra)
+
 samp_summary <- bind_cols(variables, samp_1_summary)
 
 kable(samp_1_summary, digits = 3) %>%
@@ -350,12 +338,11 @@ samp_summary
 knitr::include_graphics("Kim_et_al_photos/distance_table.jpg")
 ```
 
-```{r setup}
+```{r, Inferential Stats, warning=TRUE}
 # Inferential Stats
 #Do inferential stats for the paper, no distinction between TN and ER for calculations for the beta coefficients
-## Reading in the data again because so mamy variables were defined before that it is just simpler for my brain to refilter based off of what is needed from the total dataset
-library(dplyr)
-library(tidyverse)
+## Reading in the data again because so many variables were defined before that it is just simpler for my brain to refilter based off of what is needed from the total dataset
+
 f <- "https://raw.githubusercontent.com/mrpickett26/Individual-Data-Analysis-Replication/main/tumor%20location%20raw%20data_final.csv"
 d <- read_csv(f, col_names = TRUE)
 
@@ -417,7 +404,7 @@ std_err_s<-coef(summary(m_Subtype))[, "Std. Error"]
 
 #"In statistics, standardized (regression) coefficients, also called beta coefficients or beta weights, are the estimates resulting from a regression analysis where the underlying data have been standardized so that the variances of dependent and independent variables are equal to 1." source: https://en.wikipedia.org/wiki/Standardized_coefficient, the lm.beta package allows us to calculate this easily, and will be done for the previously used variables. 
 
-library(lm.beta) 
+
 Std_beta_coeff_Y_norm_size<-lm.beta(m_size_path_norm)
 summary(Std_beta_coeff_Y_norm_size)
 coeff_size_norm<- Std_beta_coeff_Y_norm_size$coefficients
@@ -481,13 +468,10 @@ knitr::include_graphics("Kim_et_al_photos/inferential_table.jpg")
 
 ```
 
-```{r setup}
+```{r, Data Visualization}
 #DATA VISUALIZATION
 ##Do data visualization now. No real visualization in the paper, so I chose a 3D plot of the positional data of the different cancer subtypes for both normalized and absolute. This allows me to visualize the distribution of where each tumor is located and how the normalization shifts the positions of the data. 
-library(ggplot2)
-library(plotly)
-library(plot3D)
-library(cowplot)
+
 Norm_ER__plot<-scatter3D(ER_normX, ER_normY, ER_normZ, clab = c("ER Normalized", "Position (cm)"))
 
 Abs_ER__plot<-scatter3D(ER_X, ER_Y, ER_Z, clab = c(" ER Absolute", "Position (cm)"))
@@ -499,7 +483,6 @@ Abs_TN__plot<-scatter3D(Triple_neg_X, Triple_neg_Y, Triple_neg_Z, clab = c("TN A
 
 
 ## Because the data is categorical, I decided that it didn't make much sense to plot all of them as scatter plots, but that a dot and whisker plot might be more intuitive. The dots represent the regression coefficients of the two separate models and the whiskers represent the 99% confidence intervals (as specified in the code) 
-library(dotwhisker)
 
 dwplot(list( m_Hist_grade, m_Hist_grade_norm, m_Subtype,m_Subtype_norm, m_size_path, m_size_path_norm), ci=0.99, show_intercept = FALSE) +scale_y_discrete(labels=c("Subtype" ="", "Hist_grade"="Histological Grade","Size_pathol" = "Subtype"))+scale_color_hue(labels = c( "Normalized y-axis position", "Absolute y-axis position", "Normalized y-axis position", "Absolute y-axis position","Normalized y-axis position", "Absolute y-axis position"))+ theme(plot.title = element_text(face="bold"))+ggtitle("Regression Coefficients for Breast Tumor Y-axis positions")+xlab("Standardized Beta Coefficient")
 ## I don't know why the labels on the y axis have to be switched to be correct... I went back and checked and the models earlier and they are labelled correctly and everything. Not super familiar with dotwhisker. 
