@@ -152,10 +152,13 @@ b<-c(Yes, No, UOQ, UIQ, LOQ, LIQ, periareolar, medial, central, lateral, anterio
 c<- 100* c(Percent_palp, Percent_not_palp, percent_UOQ, percent_UIQ, percent_LOQ, percent_LIQ, percent_periareolar, percent_medial, percent_central, percent_lateral, percent_anterior, percent_middle, percent_posterior, T_hist_grade1_percent, T_hist_grade2_percent, T_hist_grade3_percent)
 d<-c(Yes_ER, No_ER, UOQ_E, UIQ_E, LOQ_E, LIQ_E, periareolar_E, medial_E, central_E, lateral_E, anterior_E, middle_E, posterior_E, T_Hist_grade_1_E, T_hist_grade_2_E, T_hist_grade_3_E)
 e<- 100* c(Percent_palpE, Percent_not_palpE, percent_UOQ_E, percent_UIQ_E, percent_LOQ_E, percent_LIQ_E, percent_periareolar_E, percent_medial_E, percent_central_E, percent_lateral_E, percent_anterior_E, percent_middle_E, percent_posterior_E, T_hist_grade1E_percent, T_hist_grade2E_percent, T_hist_grade3E_percent)
-Triple_neg_df<-data.frame(Variables=a, TripleNegativeMeans=b, TripleNegativePercentages=c, ERMeans=d, ERPercentages=e)
+bind_col<-data.frame(Variables=a, TripleNegativeMeans=b, TripleNegativePercentages=c, ERMeans=d, ERPercentages=e)
 
-Triple_neg_df
+library(kableExtra)
 
+kable(bind_col, digits = 3) %>%
+  kable_styling(font_size = 12, full_width = FALSE)
+bind_col
 
 ##INFERENTIAL STATISTICS
 
@@ -448,16 +451,16 @@ Abs_TN__plot<-scatter3D(Triple_neg_X, Triple_neg_Y, Triple_neg_Z, clab = c("TN A
 ## When the positional data is normalized, it looks very "normal" (go figure!), there is no skewness to it, which makes sense since it all is normalized within the spread of the data, so the center should be at point zero. 
 
 
-## Because the data is categorical, 
+## Because the data is categorical, I decided that it didn't make much sense to plot all of them as scatter plots, but that a dot and whisker plot might be more intuitive. The dots represent the regression coefficients of the two separate models and the whiskers represent the 99% confidence intervals (as specified in the code) 
 library(dotwhisker)
-m_yd <- lm(normY_d ~ Size_pathol + Hist_grade + Subtype, data = ans2)
-m_y<-lm(Y_d~Size_pathol + Hist_grade + Subtype, data = ans2)
-dwplot(list(m_yd, m_y), show_intercept = FALSE) +
-            scale_y_discrete(labels=c("Size_pathol" = "Tumor Size (cm)", "Hist_grade" = "Histological Grade",
-                        "Subtype" ="Subtype"))+scale_color_hue(labels = c("Normalized y-axis position", "Absolute y-axis position"))+ theme(plot.title = element_text(face="bold"))+ggtitle("Regression Coefficients for Breast Tumor Y-axis positions")
 
+dwplot(list( m_Hist_grade, m_Hist_grade_norm, m_Subtype,m_Subtype_norm, m_size_path, m_size_path_norm), ci=0.99, show_intercept = FALSE) +scale_y_discrete(labels=c("Subtype" ="", "Hist_grade"="Histological Grade","Size_pathol" = "Subtype"))+scale_color_hue(labels = c( "Normalized y-axis position", "Absolute y-axis position", "Normalized y-axis position", "Absolute y-axis position","Normalized y-axis position", "Absolute y-axis position"))+ theme(plot.title = element_text(face="bold"))+ggtitle("Regression Coefficients for Breast Tumor Y-axis positions")+xlab("Standardized Beta Coefficient")
+## I don't know why the labels on the y axis have to be switched to be correct... I went back and checked and the models earlier and they are labelled correctly and everything. Not super familiar with dotwhisker. 
 
+#Normalized y-axis and Tumor Size
 plot(m_size_path_norm)
+
+#Absolute y-axis and Tumor Size
 plot(m_size_path)
 
 
